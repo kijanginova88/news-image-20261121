@@ -1,13 +1,30 @@
-// A working news-image-daily entry (Node 22, standard library only): its image is the entry.png beside this file, and
-// the program copies it to /output/entry.png. The gate takes a whole PNG or JPEG of at most 1 MiB and 1024 by 1024
-// pixels, and the judge sees exactly the bytes copied.
+// news-image-20261121 — entry runner.
 //
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// What this does: it takes the finished newspaper image, entry.png,
+// which lives in the same folder as this file, and places an exact
+// byte-for-byte copy of it into the grading output folder.
+//
+// How to run it locally:
+//   MAKEFUN_OUTPUT_DIR=/tmp/out node main.ts
+// If MAKEFUN_OUTPUT_DIR is not set, the copy lands in /output.
+// The result is deterministic: the output file is always identical
+// to entry.png, because nothing is re-encoded or re-rendered.
 
-import { copyFileSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { copyFileSync, mkdirSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
-mkdirSync(outDir, { recursive: true });
-copyFileSync(new URL('./entry.png', import.meta.url), join(outDir, 'entry.png'));
+const folderOfThisFile = dirname(fileURLToPath(import.meta.url));
+const pictureToShip = join(folderOfThisFile, "entry.png");
+
+const targetFolder =
+  process.env.MAKEFUN_OUTPUT_DIR && process.env.MAKEFUN_OUTPUT_DIR.length > 0
+    ? process.env.MAKEFUN_OUTPUT_DIR
+    : "/output";
+
+mkdirSync(targetFolder, { recursive: true });
+
+const destinationPath = join(targetFolder, "entry.png");
+copyFileSync(pictureToShip, destinationPath);
+
+console.log(`Wrote ${destinationPath}`);
